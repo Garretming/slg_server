@@ -1,0 +1,265 @@
+syntax = "proto2";
+// package wegame;
+
+//消息头定义（每条消息都有）
+message MsgHead {
+	required int32 uid = 1; //用户ID
+	required int32 cmd = 2; //命令字，对应具体消息
+	required int32 game = 3; //参看游戏ID定义
+	required int32 timestamp = 4; //发送消息的时间
+}
+
+//基础响应消息
+message ResponseMsg {
+	required MsgHead msg_head = 1;
+	required int32 ret = 2; //返回码（0成功，非0失败）
+	required string errmsg = 3; //错误提示（失败时有效）
+}
+
+//请求加入房间：1001
+message ReqJoinRoomMsg {
+	required MsgHead msg_head = 1;
+	required string access_token = 2; //授权访问串
+	required string rid = 3; //房间号码
+}
+
+//响应加入房间：11001
+//ResponseMsg
+
+//玩家状态枚举定义
+enum PlayerStatus {
+	ENM_PLAYER_STATUS_FREE = 0; //玩家未准备
+	ENM_PLAYER_STATUS_READY = 1; //玩家已准备
+	ENM_PLAYER_STATUS_LEAVE = 2; //玩家已离开
+	ENM_PLAYER_STATUS_PLAY = 3; //玩家在游戏中
+}
+
+//玩家信息定义
+message Player {
+	required int32 uid = 1; //用户ID
+	required string name = 2; //用户名
+	required string icon = 3; //用户头像
+	required int32 coin = 4; //钻石数量
+	required PlayerStatus status = 5; //玩家状态
+	required int32 point = 6; //玩家总分
+	required int32 win = 7; //玩家胜率
+	required int32 seat = 8; //玩家座位号
+	required int32 gender = 9; //玩家性别
+	required int32 offline = 10; //是否离线
+	repeated int32 game_data = 11[packed=true]; //游戏数据
+	required string ip = 12; //用户IP地址
+	required int32 allow_leave = 13; //是否允许直接离房
+	required int32 reg_time = 14; //注册时间
+	required string auto_play = 15; //托管配置
+	required int32 round_num = 16; //玩家总局数
+}
+
+//房间状态枚举定义
+enum RoomStatus {
+	ENM_ROOM_STATUS_WAITING = 0; //等待中
+	ENM_ROOM_STATUS_BEGIN = 1; //游戏已开始
+	ENM_ROOM_STATUS_SETTLE = 2; //游戏结算（每局结束）
+	ENM_ROOM_STATUS_DISMISS = 3; //房间已解散
+	ENM_ROOM_STATUS_CLOSE = 4; //房间正常关闭
+}
+
+//推送房间状态：11002
+message NotifyRoomMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required int32 type = 3; //房间类型
+	required string game = 4; //游戏配置
+	required int32 round = 5; //当前第几局
+	required int32 status = 6; //当前房间状态
+	required string billno = 7; //游戏唯一局号
+	repeated Player players = 8; //同桌玩家信息
+	required int32 start_timer = 9; //开始游戏倒计时(-1则不显示)
+}
+
+//请求打牌操作：1004
+message ReqPlayCardMsg {
+	required MsgHead msg_head = 1;
+	required int32 op = 2; //操作
+	repeated int32 cards = 3[packed=true]; //出牌数据
+}
+
+//响应打牌操作：11004
+//ResponseMsg
+
+//请求准备游戏：1007
+message ReqRaiseHandMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required int32 sit = 3; //是否坐下(0：站起 1坐下)
+}
+
+//响应准备游戏：11007
+//ResponseMsg
+
+//请求开始游戏：1008
+message ReqStartGameMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+}
+
+//响应开始游戏：11008
+//ResponseMsg
+
+//请求心跳:1010
+message ReqHelloMsg {
+	required MsgHead msg_head = 1;
+	required int32 time = 2; //当前时间
+}
+
+//响应心跳：11010
+//ResponseMsg
+
+//房间状态枚举定义
+enum ChatStyle {
+	ENM_CHAT_STYLE_TEXT = 0; //文字
+	ENM_CHAT_STYLE_AUDIO = 1; //语音
+	ENM_CHAT_STYLE_EMOJI = 2; //表情
+	ENM_CHAT_STYLE_PRESET = 3; //常用语
+}
+
+//请求聊天:1012
+message ReqChatMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required int32 to_uid = 3; //发送对象（私聊时使用）
+	required int32 style = 4; //聊天形式
+	required string content = 5; //聊天内容
+}
+
+//响应聊天：11012
+//ResponseMsg
+
+//推送聊天消息：11013
+message NotifyChatMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required int32 time = 3; //聊天时间
+	required int32 from_uid = 4; //聊天对象
+	required int32 to_uid = 5; //发送对象（私聊时使用）
+	required int32 style = 6; //聊天形式
+	required string content = 7; //聊天内容
+}
+
+//解散意见枚举定义
+enum DismissOpinion {
+	ENM_OPINION_LEAVE = 0; //退出房间（游戏未开始）
+	ENM_OPINION_START = 1; //发起解散
+	ENM_OPINION_AGREE = 2; //同意解散
+	ENM_OPINION_DISAGREE = 3; //不同意解散
+	ENM_OPINION_WAIT = 4; //尚未投票
+}
+
+//请求退出房间：1014
+message ReqLeaveRoomMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required int32 opinion = 3; //玩家意见
+}
+
+//响应退出房间：11014
+//ResponseMsg
+
+//玩家意见定义
+message PlayerOpinion {
+	required int32 uid = 1; //用户ID
+	required string name = 2; //用户名
+	required string icon = 3; //用户头像
+	required int32 opinion = 4; //玩家意见
+}
+
+//推送解散房间请求：11015
+message NotifyDismissRoomMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required Player player = 3; //发起解散的玩家信息
+	required int32 timeout = 4; //解散倒计时
+	repeated PlayerOpinion players = 5; //所有玩家投票信息
+}
+
+//请求托管:1100
+message ReqAutoPlayMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required string auto_play = 3; //托管配置（为空则取消托管）
+}
+
+///////////////////以下开始是牛牛专有协议
+
+enum NiuCardStyle {
+	ENCS_INVALID = 0; 
+	ENCS_NO_NIU = 1; //无牛
+	ENCS_NIU = 2; //牛N（牛牛）
+	ENCS_FIVE_HUGE_NIU = 3; //五花牛
+	ENCS_BOMB_NIU = 4; //炸弹牛
+	ENCS_FIVE_TINY_NIU = 5; //五小牛
+	ENCS_SHUNZI_NIU = 6; //顺子牛
+	ENCS_TONGHUA_NIU = 7; //同花牛
+	ENCS_HULU_NIU = 8; //葫芦牛
+	ENCS_TONGHUASHUN_NIU = 9; //同花顺牛
+	ENCS_FOUR_HUGE_NIU = 10; //四花牛
+}
+
+enum NiuGameState {
+	ENGS_NORMAL = 0; 
+	ENGS_PUSH = 1; //推注
+	ENGS_DOUBLE = 2; //加倍
+}
+
+//玩家牌数据定义
+message NiuCardData {
+	required int32 seat = 1; //座位ID
+	required int32 bid = 2; //已下注倍数
+	required int32 op = 3; //当前可执行的操作
+	repeated int32 bids = 4[packed=true]; //可下注（抢庄）的倍数
+	required int32 show_card = 5; //是否已亮牌
+	required int32 hand_card_num = 6; //手牌数量
+	repeated int32 hand_cards = 7[packed=true]; //手牌（未亮牌时为空数组）
+	required int32 point = 8; //玩家本局积分
+	required int32 card_style = 9; //卡牌类型
+	required int32 card_number = 10; //卡牌数字
+	required int32 rob_point = 11; //抢庄分
+	required int32 card_times = 12; //卡牌倍数
+	required int32 fold_card = 13; //是否弃牌
+	required int32 bid_double = 14; //是否可以下注加倍
+	required int32 horse_coin = 15; //已买马金额
+	required int32 horse_seat = 16; //买马位置
+	repeated int32 horses = 17[packed=true]; //可买马金额
+	required int32 horse_me = 18; //被买马金额
+	required int32 game_state = 19; //游戏状态
+
+}
+
+//牛牛操作码
+enum NiuCardOp {
+	ENM_NIU_OP_BID = 0; //下注
+	ENM_NIU_OP_ROB_DEALER = 1; //抢庄
+	ENM_NIU_OP_SHOW_CARD = 2; //亮牌
+	ENM_NIU_OP_WAIT = 3; //等待
+	ENM_NIU_OP_SETTLE = 4; //结算
+	ENM_NIU_OP_FOLD = 5; //弃牌
+}
+
+//牛牛游戏数据下发：11016
+message NotifyNiuDataMsg {
+	required MsgHead msg_head = 1;
+	required string rid = 2; //房间号码
+	required int32 dealer = 3; //庄家
+	repeated NiuCardData player_cards = 4; //所有玩家牌数据
+	required int32 time_left = 5; //剩余操作时间
+}
+
+//牛牛事件下发：11017
+message NotifyNiuEventMsg {
+	required MsgHead msg_head = 1;
+	required int32 dealer = 2; //庄家
+	required int32 op_seat = 3; //产生事件的玩家
+	required int32 op = 4; //操作
+	repeated NiuCardData player_cards = 5; //相关玩家牌数据
+	required int32 time_left = 6; //剩余操作时间
+}
+

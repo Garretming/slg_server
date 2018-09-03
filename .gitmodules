@@ -1,0 +1,15 @@
+[submodule "3rd/sdsl-lite"]
+	path = 3rd/sdsl-lite
+	url = https://github.com/simongog/sdsl-lite.git
+[submodule "3rd/perfect-hash"]
+	path = 3rd/perfect-hash
+	url = https://github.com/driedfruit/jenkins-minimal-perfect-hash.git
+[submodule "3rd/cjson"]
+	path = 3rd/cjson
+	url = https://github.com/mpx/lua-cjson.git
+[submodule "skynet"]
+	path = skynet
+	url = https://github.com/cloudwu/skynet.git
+[submodule "3rd/pbc"]
+	path = 3rd/pbc
+	url = https://github.com/cloudwu/pbc.git
