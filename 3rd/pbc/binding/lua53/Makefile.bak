@@ -1,19 +1,15 @@
+CC = gcc
+CFLAGS = -O2 -fPIC -Wall
+FLAGS += -undefined dynamic_lookup
+LUADIR = /usr/local/include
+TARGET = protobuf.so
 
 .PHONY : all clean
 
-all :
-	gcc -O2 -fPIC  -Wall --shared -o protobuf.so -I../.. -I/usr/local/include -L/usr/local/bin -L../../build pbc-lua53.c -lpbc -I../../../../skynet/3rd/lua/ 
+all : $(TARGET)
 
-51 :
-#	gcc -O2 -Wall --shared -o protobuf.dll -I../.. -I/d/project/luajit-2.0/src -L/usr/local/bin -L../../build pbc-lua.c -lpbc -llua51
-#   gcc -O2 -Wall --shared -o protobuf.dll -I../.. -I/d/project/lua-5.1.4/src -L/usr/local/bin -L../../build pbc-lua.c -lpbc -llua51
-#   gcc -O2 -Wall --shared -o protobuf.dll -I../.. -I/d/project/lua-5.3.5/src -L/usr/local/bin -L../../build pbc-lua53.c -lpbc -llua53
-	gcc -O2 -Wall --shared -o protobuf.dll -I../.. -I/../../../luajit-2.0/src -L/usr/local/bin -L../../build pbc-lua53.c -lpbc -llua53
-	
+$(TARGET) : pbc-lua53.c
+	$(CC) $(CFLAGS)  $(FLAGS) -shared -o $@ -I../.. -I$(LUADIR) -L../../build $^ -lpbc
 
 clean :
-	rm protobuf.so
-	
-
-
-
+	rm -f $(TARGET)
